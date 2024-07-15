@@ -32,7 +32,6 @@ param StorageAccount string
   'pt-PT | Portuguese (Portugal)'
   'ru-RU | Russian (Russia)'
   'sv-SE | Swedish (Sweden)'
-  'ta-IN | Tamil (India)'
   'te-IN | Telugu (India)'
   'th-TH | Thai (Thailand)'
   'tr-TR | Turkish (Turkey)'
