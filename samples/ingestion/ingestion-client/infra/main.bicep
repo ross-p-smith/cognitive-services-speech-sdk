@@ -1,5 +1,13 @@
+@minLength(1)
+@maxLength(20)
+@description('Name of the the environment which is used to generate a short unique hash used in all resources.')
+param EnvironmentName string
+
+@description('An idempotent unique token that can be used across the subscription.')
+param ResourceToken string = toLower(uniqueString(subscription().id, EnvironmentName, AzureSpeechServicesRegion))
+
 @description('The name of the storage account. It must be unique across all existing storage account names in Azure, between 3 and 24 characters long, and can contain only lowercase letters and numbers.')
-param StorageAccount string
+param StorageAccount string = 'st${ResourceToken}'
 
 @allowed([
   'ar-BH | Arabic (Bahrain)'
@@ -102,10 +110,10 @@ param ProfanityFilterMode string = 'None'
 param PunctuationMode string = 'DictatedAndAutomatic'
 
 @description('A value indicating whether diarization (speaker separation) is requested.')
-param AddDiarization bool = false
+param AddDiarization string = 'false'
 
 @description('A value indicating whether word level timestamps are requested.')
-param AddWordLevelTimestamps bool = false
+param AddWordLevelTimestamps string = 'false'
 
 @description('The key for the Text Analytics subscription.')
 @secure()
@@ -136,15 +144,12 @@ param SqlAdministratorLogin string = ''
 @secure()
 param SqlAdministratorLoginPassword string = ''
 
-@description('Id that will be suffixed to all created resources to identify resources of a certain deployment. Leave as is to use timestamp as deployment id.')
-param DeploymentId string = utcNow()
-
 @description('The connection string for the Service Bus Queue where you want to receive the notification of completion of the transcription for each audio file. If left empty, no completion notification will be sent.')
 @secure()
 param CompletedServiceBusConnectionString string = ''
 
 // Don't change the format for Version variable
-var Version = 'v2.1.7'
+var Version = 'v2.1.8'
 var AudioInputContainer = 'audio-input'
 var AudioProcessedContainer = 'audio-processed'
 var ErrorFilesOutputContainer = 'audio-failed'
@@ -156,26 +161,25 @@ var CreateHtmlResultFile = false
 var CreateConsolidatedOutputFiles = false
 var TimerBasedExecution = true
 var CreateAudioProcessedContainer = true
-var IsByosEnabledSubscription = false
-var MessagesPerFunctionExecution = 1000
-var FilesPerTranscriptionJob = 100
-var RetryLimit = 4
-var InitialPollingDelayInMinutes = 2
-var MaxPollingDelayInMinutes = 180
-var InstanceId = DeploymentId
+var IsByosEnabledSubscription = 'false'
+var MessagesPerFunctionExecution = '1000'
+var FilesPerTranscriptionJob = '100'
+var RetryLimit = '4'
+var InitialPollingDelayInMinutes = '2'
+var MaxPollingDelayInMinutes = '180'
 var StorageAccountName = StorageAccount
 var UseSqlDatabase = ((SqlAdministratorLogin != '') && (SqlAdministratorLoginPassword != ''))
-var SqlServerName = 'sqlserver${toLower(InstanceId)}'
-var DatabaseName = 'Database-${toLower(InstanceId)}'
-var ServiceBusName = 'ServiceBus-${InstanceId}'
-var AppInsightsName = 'AppInsights-${InstanceId}'
-var KeyVaultName = 'KV-${InstanceId}'
-var EventGridSystemTopicName = '${StorageAccountName}-${InstanceId}'
-var StartTranscriptionFunctionName = take('StartTranscriptionFunction-${InstanceId}', 60)
+var SqlServerName = 'sqlserver${ResourceToken}'
+var DatabaseName = 'Database-${ResourceToken}'
+var ServiceBusName = 'ServiceBus-${ResourceToken}'
+var AppInsightsName = 'AppInsights-${ResourceToken}'
+var KeyVaultName = 'KV-${ResourceToken}'
+var EventGridSystemTopicName = '${StorageAccountName}-${ResourceToken}'
+var StartTranscriptionFunctionName = take('StartTranscription-${ResourceToken}', 60)
 var StartTranscriptionFunctionId = StartTranscriptionFunction.id
-var FetchTranscriptionFunctionName = take('FetchTranscriptionFunction-${InstanceId}', 60)
+var FetchTranscriptionFunctionName = take('FetchTranscription-${ResourceToken}', 60)
 var FetchTranscriptionFunctionId = FetchTranscriptionFunction.id
-var AppServicePlanName = 'AppServicePlan-${InstanceId}'
+var AppServicePlanName = 'AppServicePlan-${ResourceToken}'
 var AzureSpeechServicesKeySecretName = 'AzureSpeechServicesKey'
 var TextAnalyticsKeySecretName = 'TextAnalyticsKey'
 var DatabaseConnectionStringSecretName = 'DatabaseConnectionString'
@@ -304,7 +308,7 @@ resource SqlServer 'Microsoft.Sql/servers@2021-02-01-preview' = if (UseSqlDataba
   }
 }
 
-resource SqlServerName_Database 'Microsoft.Sql/servers/databases@2015-01-01' = if (UseSqlDatabase) {
+resource SqlServerName_Database 'Microsoft.Sql/servers/databases@2021-11-01' = if (UseSqlDatabase) {
   parent: SqlServer
   name: DatabaseName
   location: resourceGroup().location
@@ -312,18 +316,15 @@ resource SqlServerName_Database 'Microsoft.Sql/servers/databases@2015-01-01' = i
     displayName: 'Database'
   }
   properties: {
-    edition: 'Basic'
     collation: 'SQL_Latin1_General_CP1_CI_AS'
-    requestedServiceObjectiveName: 'Basic'
   }
 }
 
-resource SqlServerName_DatabaseName_current 'Microsoft.Sql/servers/databases/transparentDataEncryption@2014-04-01-preview' = if (UseSqlDatabase) {
+resource SqlServerName_DatabaseName_current 'Microsoft.Sql/servers/databases/transparentDataEncryption@2021-11-01-preview' = if (UseSqlDatabase) {
   parent: SqlServerName_Database
   name: 'current'
-  location: resourceGroup().location
   properties: {
-    status: 'Enabled'
+    state: 'Enabled'
   }
 }
 
@@ -559,7 +560,7 @@ resource EventGridSystemTopicName_BlobCreatedEvent 'Microsoft.EventGrid/systemTo
     destination: {
       endpointType: 'ServiceBusQueue'
       properties: {
-        resourceId: '/subscriptions/${subscription().subscriptionId}/resourceGroups/${resourceGroup().name}/providers/Microsoft.ServiceBus/namespaces/${ServiceBusName}/queues/start_transcription_queue'
+        resourceId: ServiceBusName_start_transcription_queue.id
       }
     }
     filter: {
@@ -592,7 +593,6 @@ resource EventGridSystemTopicName_BlobCreatedEvent 'Microsoft.EventGrid/systemTo
   dependsOn: [
     StorageAccountName_default
     StorageAccount_resource
-    ServiceBusName_start_transcription_queue
   ]
 }
 
@@ -625,11 +625,7 @@ resource StartTranscriptionFunction 'Microsoft.Web/sites@2020-09-01' = {
 
 resource StartTranscriptionFunctionName_AppSettings 'Microsoft.Web/sites/config@2020-09-01' = {
   parent: StartTranscriptionFunction
-  name: 'AppSettings'
-  location: resourceGroup().location
-  tags: {
-    displayName: 'WebAppSettings'
-  }
+  name: 'appsettings'
   properties: {
     AddDiarization: AddDiarization
     AddWordLevelTimestamps: AddWordLevelTimestamps
@@ -652,7 +648,7 @@ resource StartTranscriptionFunctionName_AppSettings 'Microsoft.Web/sites/config@
     FUNCTIONS_WORKER_RUNTIME: 'dotnet-isolated'
     AzureSpeechServicesEndpointUri: AzureSpeechServicesEndpointUri
     InitialPollingDelayInMinutes: InitialPollingDelayInMinutes
-    IsAzureGovDeployment: IsAzureGovDeployment
+    IsAzureGovDeployment: IsAzureGovDeployment ? 'true' : 'false'
     IsByosEnabledSubscription: IsByosEnabledSubscription
     MaxPollingDelayInMinutes: MaxPollingDelayInMinutes
     Locale: Locale
@@ -693,11 +689,7 @@ resource FetchTranscriptionFunction 'Microsoft.Web/sites@2020-09-01' = {
 
 resource FetchTranscriptionFunctionName_AppSettings 'Microsoft.Web/sites/config@2020-09-01' = {
   parent: FetchTranscriptionFunction
-  name: 'AppSettings'
-  location: resourceGroup().location
-  tags: {
-    displayName: 'WebAppSettings'
-  }
+  name: 'appsettings'
   properties: {
     APPLICATIONINSIGHTS_CONNECTION_STRING: reference(AppInsights.id, '2020-02-02-preview').ConnectionString
     PiiRedactionSetting: PiiRedaction
@@ -728,11 +720,11 @@ resource FetchTranscriptionFunctionName_AppSettings 'Microsoft.Web/sites/config@
     ).primaryConnectionString
     TextAnalyticsKey: '@Microsoft.KeyVault(VaultName=${KeyVaultName};SecretName=${TextAnalyticsKeySecretName})'
     TextAnalyticsEndpoint: TextAnalyticsEndpoint
-    UseSqlDatabase: UseSqlDatabase
+    UseSqlDatabase: UseSqlDatabase ? 'true' : 'false'
     WEBSITE_RUN_FROM_PACKAGE: FetchTranscriptionBinary
-    CreateConsolidatedOutputFiles: CreateConsolidatedOutputFiles
+    CreateConsolidatedOutputFiles: CreateConsolidatedOutputFiles ? 'true' : 'false'
     ConsolidatedFilesOutputContainer: ConsolidatedFilesOutputContainer
-    CreateAudioProcessedContainer: CreateAudioProcessedContainer
+    CreateAudioProcessedContainer: CreateAudioProcessedContainer ? 'true' : 'false'
     AudioProcessedContainer: AudioProcessedContainer
     PiiCategories: PiiCategories
     ConversationPiiCategories: ConversationPiiCategories
