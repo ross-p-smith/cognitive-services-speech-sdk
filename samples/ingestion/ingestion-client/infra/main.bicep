@@ -631,7 +631,7 @@ resource StartTranscriptionFunctionName_AppSettings 'Microsoft.Web/sites/config@
     AddWordLevelTimestamps: AddWordLevelTimestamps
     APPLICATIONINSIGHTS_CONNECTION_STRING: reference(AppInsights.id, '2020-02-02-preview').ConnectionString
     AudioInputContainer: AudioInputContainer
-    AzureServiceBus: listKeys(ServiceBusName_RootManageSharedAccessKey.id, '2017-04-01').primaryConnectionString
+    AzureServiceBus: ServiceBusName_RootManageSharedAccessKey.listKeys('2017-04-01').primaryConnectionString
     AzureSpeechServicesKey: '@Microsoft.KeyVault(VaultName=${KeyVaultName};SecretName=${AzureSpeechServicesKeySecretName})'
     AzureSpeechServicesRegion: AzureSpeechServicesRegion
     AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${StorageAccountName};AccountKey=${listKeys(StorageAccount_resource.id,providers('Microsoft.Storage','storageAccounts').apiVersions[0]).keys[0].value};EndpointSuffix=${EndpointSuffix}'
