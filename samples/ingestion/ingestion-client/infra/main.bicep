@@ -635,7 +635,6 @@ resource StartTranscriptionFunctionName_AppSettings 'Microsoft.Web/sites/config@
     AzureSpeechServicesKey: '@Microsoft.KeyVault(VaultName=${KeyVaultName};SecretName=${AzureSpeechServicesKeySecretName})'
     AzureSpeechServicesRegion: AzureSpeechServicesRegion
     AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${StorageAccountName};AccountKey=${listKeys(StorageAccount_resource.id,providers('Microsoft.Storage','storageAccounts').apiVersions[0]).keys[0].value};EndpointSuffix=${EndpointSuffix}'
-    AzureWebJobsDashboard: 'DefaultEndpointsProtocol=https;AccountName=${StorageAccountName};AccountKey=${listKeys(StorageAccount_resource.id,providers('Microsoft.Storage','storageAccounts').apiVersions[0]).keys[0].value};EndpointSuffix=${EndpointSuffix}'
     CustomModelId: CustomModelId
     ErrorFilesOutputContainer: ErrorFilesOutputContainer
     ErrorReportOutputContainer: ErrorReportOutputContainer
@@ -695,11 +694,10 @@ resource FetchTranscriptionFunctionName_AppSettings 'Microsoft.Web/sites/config@
     PiiRedactionSetting: PiiRedaction
     SentimentAnalysisSetting: SentimentAnalysis
     AudioInputContainer: AudioInputContainer
-    AzureServiceBus: listKeys(ServiceBusName_RootManageSharedAccessKey.id, '2017-04-01').primaryConnectionString
+    AzureServiceBus: ServiceBusName_RootManageSharedAccessKey.listKeys('2017-04-01').primaryConnectionString
     AzureSpeechServicesKey: '@Microsoft.KeyVault(VaultName=${KeyVaultName};SecretName=${AzureSpeechServicesKeySecretName})'
     AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${StorageAccountName};AccountKey=${listKeys(StorageAccount_resource.id,providers('Microsoft.Storage','storageAccounts').apiVersions[0]).keys[0].value};EndpointSuffix=${EndpointSuffix}'
-    AzureWebJobsDashboard: 'DefaultEndpointsProtocol=https;AccountName=${StorageAccountName};AccountKey=${listKeys(StorageAccount_resource.id,providers('Microsoft.Storage','storageAccounts').apiVersions[0]).keys[0].value};EndpointSuffix=${EndpointSuffix}'
-    CreateHtmlResultFile: CreateHtmlResultFile
+    CreateHtmlResultFile: CreateHtmlResultFile ? 'true' : 'false'
     DatabaseConnectionString: '@Microsoft.KeyVault(VaultName=${KeyVaultName};SecretName=${DatabaseConnectionStringSecretName})'
     ErrorFilesOutputContainer: ErrorFilesOutputContainer
     ErrorReportOutputContainer: ErrorReportOutputContainer

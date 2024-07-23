@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.29.47.4906",
-      "templateHash": "12724331189582332727"
+      "templateHash": "15798720726873077697"
     }
   },
   "parameters": {
@@ -798,7 +798,6 @@
         "AzureSpeechServicesKey": "[format('@Microsoft.KeyVault(VaultName={0};SecretName={1})', variables('KeyVaultName'), variables('AzureSpeechServicesKeySecretName'))]",
         "AzureSpeechServicesRegion": "[parameters('AzureSpeechServicesRegion')]",
         "AzureWebJobsStorage": "[format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1};EndpointSuffix={2}', variables('StorageAccountName'), listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('StorageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, variables('EndpointSuffix'))]",
-        "AzureWebJobsDashboard": "[format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1};EndpointSuffix={2}', variables('StorageAccountName'), listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('StorageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, variables('EndpointSuffix'))]",
         "CustomModelId": "[parameters('CustomModelId')]",
         "ErrorFilesOutputContainer": "[variables('ErrorFilesOutputContainer')]",
         "ErrorReportOutputContainer": "[variables('ErrorReportOutputContainer')]",
@@ -863,8 +862,7 @@
         "AzureServiceBus": "[listKeys(resourceId('Microsoft.ServiceBus/namespaces/AuthorizationRules', variables('ServiceBusName'), 'RootManageSharedAccessKey'), '2017-04-01').primaryConnectionString]",
         "AzureSpeechServicesKey": "[format('@Microsoft.KeyVault(VaultName={0};SecretName={1})', variables('KeyVaultName'), variables('AzureSpeechServicesKeySecretName'))]",
         "AzureWebJobsStorage": "[format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1};EndpointSuffix={2}', variables('StorageAccountName'), listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('StorageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, variables('EndpointSuffix'))]",
-        "AzureWebJobsDashboard": "[format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1};EndpointSuffix={2}', variables('StorageAccountName'), listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('StorageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value, variables('EndpointSuffix'))]",
-        "CreateHtmlResultFile": "[variables('CreateHtmlResultFile')]",
+        "CreateHtmlResultFile": "[if(variables('CreateHtmlResultFile'), 'true', 'false')]",
         "DatabaseConnectionString": "[format('@Microsoft.KeyVault(VaultName={0};SecretName={1})', variables('KeyVaultName'), variables('DatabaseConnectionStringSecretName'))]",
         "ErrorFilesOutputContainer": "[variables('ErrorFilesOutputContainer')]",
         "ErrorReportOutputContainer": "[variables('ErrorReportOutputContainer')]",
