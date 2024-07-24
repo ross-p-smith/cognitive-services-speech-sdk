@@ -629,19 +629,17 @@ resource StartTranscriptionFunctionName_AppSettings 'Microsoft.Web/sites/config@
   properties: {
     AddDiarization: AddDiarization
     AddWordLevelTimestamps: AddWordLevelTimestamps
-    APPLICATIONINSIGHTS_CONNECTION_STRING: reference(AppInsights.id, '2020-02-02-preview').ConnectionString
+    APPLICATIONINSIGHTS_CONNECTION_STRING: AppInsights.listKeys('2020-02-02-preview').ConnectionString
     AudioInputContainer: AudioInputContainer
     AzureServiceBus: ServiceBusName_RootManageSharedAccessKey.listKeys('2017-04-01').primaryConnectionString
     AzureSpeechServicesKey: '@Microsoft.KeyVault(VaultName=${KeyVaultName};SecretName=${AzureSpeechServicesKeySecretName})'
     AzureSpeechServicesRegion: AzureSpeechServicesRegion
-    AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${StorageAccountName};AccountKey=${listKeys(StorageAccount_resource.id,providers('Microsoft.Storage','storageAccounts').apiVersions[0]).keys[0].value};EndpointSuffix=${EndpointSuffix}'
+    Ross: StorageAccount_resource.properties.primaryEndpoints.web
+    AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${StorageAccountName};AccountKey=${StorageAccount_resource.listKeys().keys[0].value};EndpointSuffix=${EndpointSuffix}'
     CustomModelId: CustomModelId
     ErrorFilesOutputContainer: ErrorFilesOutputContainer
     ErrorReportOutputContainer: ErrorReportOutputContainer
-    FetchTranscriptionServiceBusConnectionString: listKeys(
-      ServiceBusName_fetch_transcription_queue_FetchTranscription.id,
-      '2017-04-01'
-    ).primaryConnectionString
+    FetchTranscriptionServiceBusConnectionString: ServiceBusName_fetch_transcription_queue_FetchTranscription.listKeys('2017-04-01').primaryConnectionString
     FilesPerTranscriptionJob: FilesPerTranscriptionJob
     FUNCTIONS_EXTENSION_VERSION: '~4'
     FUNCTIONS_WORKER_RUNTIME: 'dotnet-isolated'
@@ -656,10 +654,7 @@ resource StartTranscriptionFunctionName_AppSettings 'Microsoft.Web/sites/config@
     ProfanityFilterMode: ProfanityFilterMode
     PunctuationMode: PunctuationMode
     RetryLimit: RetryLimit
-    StartTranscriptionServiceBusConnectionString: listKeys(
-      ServiceBusName_start_transcription_queue_StartTranscription.id,
-      '2017-04-01'
-    ).primaryConnectionString
+    StartTranscriptionServiceBusConnectionString: ServiceBusName_start_transcription_queue_StartTranscription.listKeys('2017-04-01').primaryConnectionString
     WEBSITE_RUN_FROM_PACKAGE: (TimerBasedExecution
       ? StartTranscriptionByTimerBinary
       : StartTranscriptionByServiceBusBinary)
@@ -690,21 +685,19 @@ resource FetchTranscriptionFunctionName_AppSettings 'Microsoft.Web/sites/config@
   parent: FetchTranscriptionFunction
   name: 'appsettings'
   properties: {
-    APPLICATIONINSIGHTS_CONNECTION_STRING: reference(AppInsights.id, '2020-02-02-preview').ConnectionString
+    APPLICATIONINSIGHTS_CONNECTION_STRING: AppInsights.listKeys('2020-02-02-preview').ConnectionString
     PiiRedactionSetting: PiiRedaction
     SentimentAnalysisSetting: SentimentAnalysis
     AudioInputContainer: AudioInputContainer
     AzureServiceBus: ServiceBusName_RootManageSharedAccessKey.listKeys('2017-04-01').primaryConnectionString
     AzureSpeechServicesKey: '@Microsoft.KeyVault(VaultName=${KeyVaultName};SecretName=${AzureSpeechServicesKeySecretName})'
-    AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${StorageAccountName};AccountKey=${listKeys(StorageAccount_resource.id,providers('Microsoft.Storage','storageAccounts').apiVersions[0]).keys[0].value};EndpointSuffix=${EndpointSuffix}'
+    Ross: StorageAccount_resource.properties.primaryEndpoints.web
+    AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${StorageAccountName};AccountKey=${StorageAccount_resource.listKeys().keys[0].value};EndpointSuffix=${EndpointSuffix}'
     CreateHtmlResultFile: CreateHtmlResultFile ? 'true' : 'false'
     DatabaseConnectionString: '@Microsoft.KeyVault(VaultName=${KeyVaultName};SecretName=${DatabaseConnectionStringSecretName})'
     ErrorFilesOutputContainer: ErrorFilesOutputContainer
     ErrorReportOutputContainer: ErrorReportOutputContainer
-    FetchTranscriptionServiceBusConnectionString: listKeys(
-      ServiceBusName_fetch_transcription_queue_FetchTranscription.id,
-      '2017-04-01'
-    ).primaryConnectionString
+    FetchTranscriptionServiceBusConnectionString: ServiceBusName_fetch_transcription_queue_FetchTranscription.listKeys('2017-04-01').primaryConnectionString
     FUNCTIONS_EXTENSION_VERSION: '~4'
     FUNCTIONS_WORKER_RUNTIME: 'dotnet-isolated'
     HtmlResultOutputContainer: HtmlResultOutputContainer
@@ -712,10 +705,7 @@ resource FetchTranscriptionFunctionName_AppSettings 'Microsoft.Web/sites/config@
     MaxPollingDelayInMinutes: MaxPollingDelayInMinutes
     JsonResultOutputContainer: JsonResultOutputContainer
     RetryLimit: RetryLimit
-    StartTranscriptionServiceBusConnectionString: listKeys(
-      ServiceBusName_start_transcription_queue_StartTranscription.id,
-      '2017-04-01'
-    ).primaryConnectionString
+    StartTranscriptionServiceBusConnectionString: ServiceBusName_start_transcription_queue_StartTranscription.listKeys('2017-04-01').primaryConnectionString
     TextAnalyticsKey: '@Microsoft.KeyVault(VaultName=${KeyVaultName};SecretName=${TextAnalyticsKeySecretName})'
     TextAnalyticsEndpoint: TextAnalyticsEndpoint
     UseSqlDatabase: UseSqlDatabase ? 'true' : 'false'
